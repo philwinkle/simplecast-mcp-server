@@ -1,0 +1,46 @@
+{
+  "name": "simplecast-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server exposing the Simplecast Public API as tools for Claude Desktop and Claude Code.",
+  "type": "module",
+  "bin": {
+    "simplecast-mcp-server": "build/index.js"
+  },
+  "files": [
+    "build"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc && chmod +x build/index.js",
+    "start": "node build/index.js",
+    "smoke": "node scripts/smoke-test.mjs",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "simplecast",
+    "podcast",
+    "claude"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/philwinkle/simplecast-mcp-server.git"
+  },
+  "homepage": "https://github.com/philwinkle/simplecast-mcp-server",
+  "bugs": {
+    "url": "https://github.com/philwinkle/simplecast-mcp-server/issues"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "@types/node": "^22.10.5"
+  }
+}
