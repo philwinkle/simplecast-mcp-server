@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write # npm Trusted Publishing (OIDC)
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -25,7 +26,9 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          registry-url: "https://registry.npmjs.org"
+
+      - name: Update npm (Trusted Publishing needs >= 11.5)
+        run: npm install -g npm@latest
 
       - name: Check tag matches package version
         run: |
@@ -51,9 +54,7 @@ jobs:
       - name: Package Claude Desktop Extension
         run: npm run package:mcpb
 
-      - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish to npm (Trusted Publishing / OIDC)
         run: |
           NAME="$(node -p "require('./package.json').name")"
           VERSION="$(node -p "require('./package.json').version")"
