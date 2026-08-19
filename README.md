@@ -6,7 +6,7 @@ An MCP (Model Context Protocol) server that exposes the [Simplecast Public API](
 
 Simplecast is a podcast hosting and analytics platform. This server wraps the Simplecast Public API in a set of MCP tools so Claude can look up your shows and episodes, pull downloads/listener/geographic/device analytics, audit your account, and (optionally, with confirmation) update podcast metadata — all from a chat.
 
-It ships alongside a public [Agent Skill](#the-skill) that teaches Claude how to use these tools well: resolving IDs before calling analytics endpoints, discovering which reports are available on your plan, and running common workflows like a show performance review or an episode comparison.
+It ships alongside a public [Agent Skill](#install-the-skill) that teaches Claude how to use these tools well: resolving IDs before calling analytics endpoints, discovering which reports are available on your plan, and running common workflows like a show performance review or an episode comparison.
 
 ## Getting a token
 
@@ -17,7 +17,23 @@ It ships alongside a public [Agent Skill](#the-skill) that teaches Claude how to
 
 The server starts even without a token so its tools can be listed, but every tool call will fail with a clear message until `SIMPLECAST_API_TOKEN` is set.
 
-## Install & configure for Claude Desktop
+## Install in Claude Desktop
+
+There are two ways to install the server in Claude Desktop.
+
+### Option A: one-click Desktop Extension (recommended)
+
+This server ships as a [Desktop Extension](https://www.anthropic.com/engineering/desktop-extensions) (`.mcpb`) — a single bundle Claude Desktop can install without editing any config files.
+
+1. Build the bundle (or download `dist/simplecast-mcp-server.mcpb` from a release):
+   ```bash
+   npm install
+   npm run package:mcpb
+   ```
+2. Open Claude Desktop → **Settings → Extensions**, and drag in (or click to open) `dist/simplecast-mcp-server.mcpb`.
+3. When prompted, enter your Simplecast API token — see [Getting a token](#getting-a-token) above. Claude Desktop stores it securely and passes it to the server as `SIMPLECAST_API_TOKEN`.
+
+### Option B: manual `claude_desktop_config.json`
 
 Add an entry to your `claude_desktop_config.json`:
 
@@ -91,7 +107,7 @@ Then point your MCP config at the built entry point instead of `npx`:
 
 ## Tools
 
-All tools return JSON from the Simplecast API. Params marked `?` are optional. Analytics tools take **either** `podcast_id` **or** `episode_id`, never both.
+25 tools total. All return JSON from the Simplecast API. Params marked `?` are optional. Unless noted otherwise, analytics tools take **either** `podcast_id` **or** `episode_id`, never both and never neither.
 
 ### Account & reference
 
@@ -101,6 +117,9 @@ All tools return JSON from the Simplecast API. Params marked `?` are optional. A
 | `list_categories` | List Simplecast podcast categories | `limit?`, `offset?` |
 | `list_timezones` | List supported timezones | — |
 | `list_distribution_channels` | List distribution channels (e.g. Apple Podcasts, Spotify) | `podcast_id?`, `limit?`, `offset?` |
+| `list_keywords` | List keywords on a podcast or an episode | exactly one of `podcast_id` / `episode_id` |
+| `list_authors` | List authors on a podcast or an episode | exactly one of `podcast_id` / `episode_id` |
+| `get_oembed` | Get oEmbed metadata for an episode's public URL | `url` (required) |
 
 ### Podcasts
 
@@ -110,14 +129,15 @@ All tools return JSON from the Simplecast API. Params marked `?` are optional. A
 | `get_podcast` | Get a single podcast by id | `podcast_id` (required) |
 | `update_podcast` | **Mutating** — updates a live podcast's metadata | `podcast_id` (required), `attributes` (required object of fields to change) |
 
-### Episodes
+### Episodes & seasons
 
 | Tool | Description | Key params |
 |---|---|---|
-| `list_episodes` | List episodes for a podcast | `podcast_id` (required), `limit?`, `offset?` |
+| `list_episodes` | List episodes for a podcast | `podcast_id` (required), `limit?`, `offset?`, `search?`, `sort?`, `status?`, `type?` |
 | `get_episode` | Get a single episode by id | `episode_id` (required) |
 | `get_episode_markers` | Get chapter/ad markers for an episode | `episode_id` (required) |
 | `list_seasons` | List seasons for a podcast | `podcast_id` (required) |
+| `get_season_episodes` | List episodes in a season | `season_id` (required), `limit?`, `offset?` |
 
 ### Analytics
 
@@ -125,11 +145,13 @@ All tools return JSON from the Simplecast API. Params marked `?` are optional. A
 |---|---|---|
 | `get_analytics_overview` | Hypermedia hub — start here; returns links to every analytics report available for your plan | `podcast_id?`, `episode_id?` |
 | `get_downloads_analytics` | Download counts over time | `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` |
-| `get_listener_analytics` | Listener counts (podcast-level) | `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` |
-| `get_episodes_analytics` | Per-episode analytics rollup for a show | `podcast_id` (required), `limit?`, `offset?` |
+| `get_listener_analytics` | Listener counts | `report?` (enum: `listeners` default, `last_7` podcast-only, `podcast_total` podcast-only), `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` |
+| `get_episodes_analytics` | Per-episode analytics rollup for a show | `podcast_id` (required), `report?` (enum: `list` default, `average_downloads`, `hours_listened`, `listeners`, `top_10`), `limit?`, `offset?`, `start_date?`, `end_date?` |
 | `get_location_analytics` | Geographic breakdown of listens | `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` |
-| `get_time_of_week_analytics` | Listens broken down by day/time of week | `podcast_id?`, `episode_id?` |
-| `get_technology_analytics` | Listens broken down by app, listening method, or device class | `report` (required enum: `applications`, `listening_methods`, `device_class`), `podcast_id?`, `episode_id?` |
+| `get_time_of_week_analytics` | Listens broken down by day/time of week | `podcast_id` (required — podcast-only) |
+| `get_technology_analytics` | Listens broken down by app, browser, device, OS, network, etc. | `report` (required enum: `summary`, `applications`, `browsers`, `device_class`, `devices`, `listening_methods`, `network_types`, `operating_systems`, `providers`, `web_players`), `podcast_id?`, `episode_id?` — `web_players` is podcast-only |
+| `get_embed_analytics` | Web Player (embedded player) analytics | `report?` (enum: `summary` default, `episodes`, `listens`, `locations`, `speeds`, `avg_completion`, `heatmap`), `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` — `episodes` and `speeds` are podcast-only, `avg_completion` and `heatmap` are episode-only |
+| `get_campaign_analytics` | Ad campaign performance analytics | `campaign_id` (required) |
 
 ### Escape hatch
 
@@ -137,21 +159,35 @@ All tools return JSON from the Simplecast API. Params marked `?` are optional. A
 |---|---|---|
 | `simplecast_get` | Follow any `href` returned by the API, including reports without a dedicated tool | `path` (required, must start with `/`), `query?` |
 
-## The Skill
+Note: `POST /episodes/{id}/audio` (uploading episode audio) exists in the Simplecast API and appears in Simplecast's Postman collection, but is **intentionally not exposed** as a tool here — use the Simplecast dashboard for audio uploads.
 
-`skills/simplecast/` is a public [Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) that teaches Claude how to use this server effectively: resolving podcast/episode IDs before calling analytics tools, starting analytics work with `get_analytics_overview` to discover what's available on your plan, and recipes for common tasks (performance reviews, episode comparisons, geographic/device breakdowns, account audits).
+## Install the Skill
 
-To install it:
+`skills/simplecast/` is a public [Agent Skill](https://docs.claude.com/en/docs/claude-code/skills) that teaches Claude how to use this server effectively: resolving podcast/episode IDs before calling analytics tools, starting analytics work with `get_analytics_overview` to discover what's available on your plan, and recipes for common tasks (performance reviews, episode comparisons, web player/ad analytics, account audits).
 
-- **Personal (Claude Code, all projects)**: copy `skills/simplecast` to `~/.claude/skills/simplecast`.
-- **Project (Claude Code, this repo only)**: copy `skills/simplecast` to `.claude/skills/simplecast` in your project.
-- **claude.ai / Claude Desktop**: where Skills are supported, upload or reference the `skills/simplecast` folder the same way.
+### Claude Desktop / claude.ai
+
+1. Package the skill into a zip:
+   ```bash
+   npm install
+   npm run package:skill
+   ```
+2. In Claude Desktop or claude.ai, go to **Settings → Capabilities → Skills** and upload `dist/simplecast-skill.zip`.
+
+### Claude Code
+
+Copy the skill folder into a skills directory Claude Code reads from:
+
+- **Personal (all projects)**: copy `skills/simplecast` to `~/.claude/skills/simplecast`.
+- **Project (this repo only)**: copy `skills/simplecast` to `.claude/skills/simplecast` in your project.
 
 ## Notes
 
 - The Simplecast API is **self-describing / hypermedia**: `get_analytics_overview` returns `href` links to every report actually available for your account and plan, rather than a fixed list. `simplecast_get` can follow any of those hrefs directly.
-- Some endpoints — `get_episode_markers`, `list_seasons`, `get_current_user`, `get_location_analytics`, `get_time_of_week_analytics`, and `get_technology_analytics` — are less consistently documented across Simplecast plans and accounts. If one 404s for you, that's most likely a plan/account limitation rather than a bug; fall back to `get_analytics_overview` to see what's actually exposed to you.
+- `update_podcast` is confirmed against Simplecast's docs-site examples, not against the official Postman collection — the collection does not include a podcast-update request. Always confirm the exact fields being changed with the user before calling it.
+- Some endpoints vary by Simplecast plan and account. If one 404s for you, that's most likely a plan/account limitation rather than a bug; fall back to `get_analytics_overview` to see what's actually exposed to you.
 - Dates for analytics params use `YYYY-MM-DD`.
+- See `skills/simplecast/references/api-notes.md` for the full endpoint reference, including query parameters not yet exposed as typed tool arguments (reachable via `simplecast_get`).
 
 ## License
 
