@@ -25,6 +25,16 @@ jobs:
         with:
           node-version: 20
           cache: npm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Check tag matches package version
+        run: |
+          TAG="${{ inputs.tag || github.ref_name }}"
+          PKG="v$(node -p "require('./package.json').version")"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "Tag $TAG does not match package.json version $PKG" >&2
+            exit 1
+          fi
 
       - name: Install dependencies
         run: npm ci
@@ -40,6 +50,18 @@ jobs:
 
       - name: Package Claude Desktop Extension
         run: npm run package:mcpb
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          NAME="$(node -p "require('./package.json').name")"
+          VERSION="$(node -p "require('./package.json').version")"
+          if npm view "$NAME@$VERSION" version >/dev/null 2>&1; then
+            echo "$NAME@$VERSION is already on npm — skipping publish"
+          else
+            npm publish
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
