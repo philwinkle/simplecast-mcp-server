@@ -2,6 +2,8 @@
 
 An MCP (Model Context Protocol) server that exposes the [Simplecast Public API](https://apidocs.simplecast.com/) — podcast hosting, episode management, analytics, and ad performance data — as tools for Claude Desktop and Claude Code.
 
+> **Unofficial.** This project is not affiliated with, endorsed by, or supported by Simplecast. "Simplecast" is a trademark of its respective owner; this is an independent, community-built client for their public API.
+
 ## What it is
 
 Simplecast is a podcast hosting and analytics platform. This server wraps the Simplecast Public API in a set of MCP tools so Claude can look up your shows and episodes, pull downloads/listener/geographic/device analytics, audit your account, and (optionally, with confirmation) update podcast metadata — all from a chat.
