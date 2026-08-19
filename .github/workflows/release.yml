@@ -1,0 +1,52 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Smoke test
+        run: npm run smoke
+
+      - name: Package Agent Skill
+        run: npm run package:skill
+
+      - name: Package Claude Desktop Extension
+        run: npm run package:mcpb
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Simplecast MCP Server ${{ github.ref_name }}"
+          generate_release_notes: true
+          files: |
+            dist/simplecast-mcp-server.mcpb
+            dist/simplecast-skill.zip
+          body: |
+            ## Assets
+
+            - **`simplecast-mcp-server.mcpb`** — a one-click [Claude Desktop Extension](https://www.anthropic.com/engineering/desktop-extensions). Open it with Claude Desktop and enter your Simplecast API token when prompted.
+            - **`simplecast-skill.zip`** — the Simplecast Agent Skill. Upload it in Settings → Capabilities → Skills, or unzip it into `~/.claude/skills/` for Claude Code.
+
+            See the [README](https://github.com/philwinkle/simplecast-mcp-server#readme) for `npx`/Claude Code MCP setup instructions.
