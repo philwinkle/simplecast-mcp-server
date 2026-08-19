@@ -48,8 +48,9 @@ export function registerAccountTools(server: McpServer, client: SimplecastClient
     {
       title: "List distribution channels",
       description:
-        "List distribution channels (e.g. Apple Podcasts, Spotify) known to Simplecast, optionally scoped to a single podcast. " +
-        "Use this to see where a podcast is distributed or to look up channel ids. Returns a paginated collection envelope.",
+        "List distribution channels (e.g. Apple Podcasts, Spotify) known to Simplecast. Pass podcast_id to scope " +
+        "the list to the channels a single show is actually distributed to; omit it to list every channel " +
+        "Simplecast knows about. Returns a paginated collection envelope.",
       inputSchema: {
         podcast_id: z
           .string()
@@ -60,8 +61,11 @@ export function registerAccountTools(server: McpServer, client: SimplecastClient
       },
     },
     async ({ podcast_id, limit, offset }) =>
-      runTool(() =>
-        client.request("/distribution_channels", { podcast: podcast_id, limit, offset })
-      )
+      runTool(() => {
+        const path = podcast_id
+          ? `/podcasts/${encodeURIComponent(podcast_id)}/distribution_channels`
+          : "/distribution_channels";
+        return client.request(path, { limit, offset });
+      })
   );
 }

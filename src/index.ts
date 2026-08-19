@@ -11,11 +11,12 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { SimplecastClient } from "./client.js";
 import { registerAllTools } from "./tools/index.js";
+import { VERSION } from "./version.js";
 
 async function main(): Promise<void> {
   const server = new McpServer({
     name: "simplecast",
-    version: "0.1.0",
+    version: VERSION,
   });
 
   const client = new SimplecastClient();

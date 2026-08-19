@@ -6,13 +6,15 @@ import { registerAccountTools } from "./account.js";
 import { registerPodcastTools } from "./podcasts.js";
 import { registerEpisodeTools } from "./episodes.js";
 import { registerAnalyticsTools } from "./analytics.js";
+import { registerResourceTools } from "./resources.js";
 
-/** Registers every Simplecast MCP tool (account/reference, podcasts, episodes, analytics, escape hatch). */
+/** Registers every Simplecast MCP tool (account/reference, podcasts, episodes, analytics, resources, escape hatch). */
 export function registerAllTools(server: McpServer, client: SimplecastClient): void {
   registerAccountTools(server, client);
   registerPodcastTools(server, client);
   registerEpisodeTools(server, client);
   registerAnalyticsTools(server, client);
+  registerResourceTools(server, client);
   registerEscapeHatchTool(server, client);
 }
 

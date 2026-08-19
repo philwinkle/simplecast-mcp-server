@@ -1,0 +1,46 @@
+{
+  "manifest_version": "0.3",
+  "name": "simplecast-mcp-server",
+  "display_name": "Simplecast",
+  "version": "0.2.0",
+  "description": "Manage Simplecast podcasts and episodes and pull download/listener/technology/Web Player analytics from Claude.",
+  "long_description": "Exposes the Simplecast Public API as MCP tools: browse podcasts, episodes, seasons, authors and keywords; read and update podcast metadata; and query download, listener, location, technology, time-of-week, Web Player (embed), and ad campaign analytics. Requires a Simplecast Private App API token.",
+  "author": {
+    "name": "Phillip Jackson",
+    "email": "phillip@futurecommerce.com",
+    "url": "https://github.com/philwinkle"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/philwinkle/simplecast-mcp-server.git"
+  },
+  "homepage": "https://github.com/philwinkle/simplecast-mcp-server",
+  "license": "MIT",
+  "keywords": ["mcp", "model-context-protocol", "simplecast", "podcast", "analytics", "claude"],
+  "server": {
+    "type": "node",
+    "entry_point": "build/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/build/index.js"],
+      "env": {
+        "SIMPLECAST_API_TOKEN": "${user_config.api_token}"
+      }
+    }
+  },
+  "user_config": {
+    "api_token": {
+      "type": "string",
+      "title": "Simplecast API Token",
+      "description": "Your Simplecast Private App API token, from Simplecast → Account → Private Apps.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

@@ -34,7 +34,7 @@ Every scoped analytics tool (`get_analytics_overview`, `get_downloads_analytics`
 
 A few tools are scope-fixed, not either/or:
 - `get_time_of_week_analytics` and `get_episodes_analytics` always take `podcast_id` (podcast-only).
-- Within `get_embed_analytics`, `report: "avg_completion"` and `report: "heatmap"` require `episode_id` (episode-only); `report: "episodes"` requires `podcast_id` (it's a per-episode rollup for a show); `report: "speeds"` is podcast-only. `summary`, `listens`, and `locations` accept either scope.
+- Within `get_embed_analytics`, `report: "avg_completion"` and `report: "heatmap"` require `episode_id` (episode-only); `report: "episodes"`, `"listens"`, `"locations"`, and `"speeds"` all require `podcast_id` (podcast-only). Only the default `report: "summary"` accepts either scope.
 - Within `get_listener_analytics`, `report: "last_7"` and `report: "podcast_total"` require `podcast_id` (podcast-only); the default `report: "listeners"` accepts either scope.
 
 ## Pagination
@@ -64,7 +64,7 @@ List endpoints return an envelope: `{ "collection": [...], "pages": {...} }`. To
 
 **Web player (embed) performance**
 1. Resolve the id.
-2. `get_embed_analytics` with `report: "summary"` to see what's available, then drill in: `"episodes"` (podcast, per-episode rollup), `"listens"` or `"locations"` (podcast or episode), `"speeds"` (podcast, playback-speed distribution), `"avg_completion"` or `"heatmap"` (episode only — how far into the episode listeners get).
+2. `get_embed_analytics` with `report: "summary"` to see what's available, then drill in: `"episodes"` (podcast, per-episode rollup), `"listens"` or `"locations"` (podcast-only), `"speeds"` (podcast, playback-speed distribution), `"avg_completion"` or `"heatmap"` (episode only — how far into the episode listeners get).
 
 **Ad campaign performance**
 1. Get the `campaign_id` from the user or from a prior analytics/link response — campaigns aren't listable through a dedicated tool.

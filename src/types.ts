@@ -50,21 +50,83 @@ export interface ResourceScopeInput {
 }
 
 /**
- * Analytics endpoints accept exactly one of podcast_id / episode_id. Validates that and
+ * Analytics endpoints that accept exactly one of podcast_id / episode_id. Validates that and
  * returns the query param object to merge into the request (`{ podcast }` or `{ episode }`).
  * Throws SimplecastApiError (caught by runTool) if zero or both are given.
+ *
+ * `context` is optional and only used to make the error message more specific (e.g. naming
+ * the tool and report), so existing callers that don't pass it keep working unchanged.
  */
-export function resolveResourceScope(input: ResourceScopeInput): Record<string, string> {
+export function resolveResourceScope(
+  input: ResourceScopeInput,
+  context?: string
+): Record<string, string> {
   const { podcast_id, episode_id } = input;
+  const suffix = context ? ` for ${context}` : "";
   if (podcast_id && episode_id) {
     throw new SimplecastApiError(
-      "Provide exactly one of podcast_id or episode_id, not both."
+      `Provide exactly one of podcast_id or episode_id${suffix}, not both.`
     );
   }
   if (!podcast_id && !episode_id) {
-    throw new SimplecastApiError(
-      "Provide exactly one of podcast_id or episode_id."
-    );
+    throw new SimplecastApiError(`Provide exactly one of podcast_id or episode_id${suffix}.`);
   }
   return podcast_id ? { podcast: podcast_id } : { episode: episode_id as string };
+}
+
+/**
+ * For reports that are podcast-only (per the Simplecast API docs): rejects episode_id with a
+ * clear message naming the report/tool, requires podcast_id, and returns it.
+ */
+export function requirePodcastId(input: ResourceScopeInput, context: string): string {
+  const { podcast_id, episode_id } = input;
+  if (episode_id) {
+    throw new SimplecastApiError(
+      `${context} is podcast-only — it does not accept episode_id (got "${episode_id}"). ` +
+        "Provide podcast_id instead."
+    );
+  }
+  if (!podcast_id) {
+    throw new SimplecastApiError(`${context} requires podcast_id.`);
+  }
+  return podcast_id;
+}
+
+/**
+ * For reports that are episode-only (per the Simplecast API docs): rejects podcast_id with a
+ * clear message naming the report/tool, requires episode_id, and returns it.
+ */
+export function requireEpisodeId(input: ResourceScopeInput, context: string): string {
+  const { podcast_id, episode_id } = input;
+  if (podcast_id) {
+    throw new SimplecastApiError(
+      `${context} is episode-only — it does not accept podcast_id (got "${podcast_id}"). ` +
+        "Provide episode_id instead."
+    );
+  }
+  if (!episode_id) {
+    throw new SimplecastApiError(`${context} requires episode_id.`);
+  }
+  return episode_id;
+}
+
+/**
+ * For non-analytics resource lookups that accept exactly one of podcast_id / episode_id and
+ * route to a different REST path depending on which was given (e.g. list_keywords,
+ * list_authors). Returns which kind was given plus its id, rather than a query param object.
+ */
+export function resolveEitherId(
+  input: ResourceScopeInput,
+  context: string
+): { kind: "podcast" | "episode"; id: string } {
+  const { podcast_id, episode_id } = input;
+  if (podcast_id && episode_id) {
+    throw new SimplecastApiError(
+      `Provide exactly one of podcast_id or episode_id for ${context}, not both.`
+    );
+  }
+  if (!podcast_id && !episode_id) {
+    throw new SimplecastApiError(`Provide exactly one of podcast_id or episode_id for ${context}.`);
+  }
+  return podcast_id ? { kind: "podcast", id: podcast_id } : { kind: "episode", id: episode_id as string };
 }

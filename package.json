@@ -1,6 +1,6 @@
 {
   "name": "simplecast-mcp-server",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "MCP server exposing the Simplecast Public API as tools for Claude Desktop and Claude Code.",
   "type": "module",
   "bin": {
@@ -16,6 +16,8 @@
     "build": "tsc && chmod +x build/index.js",
     "start": "node build/index.js",
     "smoke": "node scripts/smoke-test.mjs",
+    "package:skill": "node scripts/package-skill.mjs",
+    "package:mcpb": "node scripts/package-mcpb.mjs",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -41,6 +43,7 @@
   },
   "devDependencies": {
     "typescript": "^5.7.3",
-    "@types/node": "^22.10.5"
+    "@types/node": "^22.10.5",
+    "@anthropic-ai/mcpb": "^2.1.2"
   }
 }

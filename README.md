@@ -125,7 +125,7 @@ Then point your MCP config at the built entry point instead of `npx`:
 
 | Tool | Description | Key params |
 |---|---|---|
-| `list_podcasts` | List podcasts on the account | `limit?`, `offset?` |
+| `list_podcasts` | List podcasts on the account | `limit?`, `offset?`, `search?`, `status?` (enum: `draft`, `published`), `type?` (enum: `serial`, `episodic`, `episodic_seasons`) |
 | `get_podcast` | Get a single podcast by id | `podcast_id` (required) |
 | `update_podcast` | **Mutating** — updates a live podcast's metadata | `podcast_id` (required), `attributes` (required object of fields to change) |
 
@@ -144,14 +144,14 @@ Then point your MCP config at the built entry point instead of `npx`:
 | Tool | Description | Key params |
 |---|---|---|
 | `get_analytics_overview` | Hypermedia hub — start here; returns links to every analytics report available for your plan | `podcast_id?`, `episode_id?` |
-| `get_downloads_analytics` | Download counts over time | `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` |
-| `get_listener_analytics` | Listener counts | `report?` (enum: `listeners` default, `last_7` podcast-only, `podcast_total` podcast-only), `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` |
-| `get_episodes_analytics` | Per-episode analytics rollup for a show | `podcast_id` (required), `report?` (enum: `list` default, `average_downloads`, `hours_listened`, `listeners`, `top_10`), `limit?`, `offset?`, `start_date?`, `end_date?` |
-| `get_location_analytics` | Geographic breakdown of listens | `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` |
+| `get_downloads_analytics` | Download counts over time | `podcast_id?`, `episode_id?`, `start_date?`, `end_date?`, `interval?` (enum: `day`, `week`, `month`), `sort?` (enum: `asc`, `desc`) |
+| `get_listener_analytics` | Listener counts | `report?` (enum: `listeners` default, `last_7` podcast-only, `podcast_total` podcast-only), `podcast_id?`, `episode_id?`, `start_date?`, `end_date?`, `interval?`, `sort?` |
+| `get_episodes_analytics` | Per-episode analytics rollup for a show | `podcast_id` (required), `report?` (enum: `list` default, `average_downloads`, `hours_listened`, `listeners`, `top_10`), `episodes?` (comma-separated episode ids), `start_date?`, `end_date?`, `interval?`, `sort?`, `limit?`, `offset?` |
+| `get_location_analytics` | Geographic breakdown of listens | `podcast_id?`, `episode_id?`, `country?` (int), `state?` (int), `start_date?`, `end_date?`, `sort?` |
 | `get_time_of_week_analytics` | Listens broken down by day/time of week | `podcast_id` (required — podcast-only) |
-| `get_technology_analytics` | Listens broken down by app, browser, device, OS, network, etc. | `report` (required enum: `summary`, `applications`, `browsers`, `device_class`, `devices`, `listening_methods`, `network_types`, `operating_systems`, `providers`, `web_players`), `podcast_id?`, `episode_id?` — `web_players` is podcast-only |
-| `get_embed_analytics` | Web Player (embedded player) analytics | `report?` (enum: `summary` default, `episodes`, `listens`, `locations`, `speeds`, `avg_completion`, `heatmap`), `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` — `episodes` and `speeds` are podcast-only, `avg_completion` and `heatmap` are episode-only |
-| `get_campaign_analytics` | Ad campaign performance analytics | `campaign_id` (required) |
+| `get_technology_analytics` | Listens broken down by app, browser, device, OS, network, etc. | `report?` (enum: `summary` default, `applications`, `browsers`, `device_class`, `devices`, `listening_methods`, `network_types`, `operating_systems`, `providers`, `web_players`), `podcast_id?`, `episode_id?`, `start_date?`, `end_date?` — `web_players` is podcast-only |
+| `get_embed_analytics` | Web Player (embedded player) analytics | `report?` (enum: `summary` default, `episodes`, `listens`, `locations`, `speeds`, `avg_completion`, `heatmap`), `podcast_id?`, `episode_id?`, `episodes?` (comma-separated episode ids, for `report: "episodes"`), `start_date?`, `end_date?`, `interval?`, `sort?`, `limit?`, `offset?` — `episodes`, `listens`, `locations`, and `speeds` are podcast-only; `avg_completion` and `heatmap` are episode-only |
+| `get_campaign_analytics` | Ad campaign performance analytics | `campaign_id` (required), `start_date?`, `end_date?`, `interval?` |
 
 ### Escape hatch
 

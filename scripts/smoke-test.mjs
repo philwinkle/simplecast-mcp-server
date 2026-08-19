@@ -30,6 +30,7 @@ const EXPECTED_TOOLS = [
   "get_episode",
   "get_episode_markers",
   "list_seasons",
+  "get_season_episodes",
   "get_analytics_overview",
   "get_downloads_analytics",
   "get_listener_analytics",
@@ -37,6 +38,11 @@ const EXPECTED_TOOLS = [
   "get_location_analytics",
   "get_time_of_week_analytics",
   "get_technology_analytics",
+  "get_embed_analytics",
+  "get_campaign_analytics",
+  "list_keywords",
+  "list_authors",
+  "get_oembed",
   "simplecast_get",
 ];
 
@@ -182,6 +188,32 @@ async function main() {
         fail(`tools/call list_podcasts error message missing expected text "${MISSING_TOKEN_MESSAGE_FRAGMENT}": ${text}`);
       } else {
         console.error("OK: list_podcasts without a token returns isError with the missing-token message");
+      }
+    }
+
+    // 5. call get_embed_analytics with report=heatmap (episode-only) + podcast_id -> expect a
+    //    scope-validation isError mentioning "episode", raised before any network call is made
+    //    (so it doesn't require a token).
+    const heatmapResponse = await request("tools/call", {
+      name: "get_embed_analytics",
+      arguments: { report: "heatmap", podcast_id: "11111111-1111-1111-1111-111111111111" },
+    });
+
+    if (heatmapResponse.error) {
+      fail(
+        `tools/call get_embed_analytics(report=heatmap, podcast_id=...) returned a protocol-level error (expected a tool-level isError result): ${JSON.stringify(heatmapResponse.error)}`
+      );
+    } else {
+      const result = heatmapResponse.result;
+      const text = result?.content?.[0]?.text ?? "";
+      if (result?.isError !== true) {
+        fail(
+          `get_embed_analytics(report=heatmap, podcast_id=...) should return isError:true (heatmap is episode-only), got: ${JSON.stringify(result)}`
+        );
+      } else if (!text.toLowerCase().includes("episode")) {
+        fail(`get_embed_analytics(report=heatmap) error message should mention "episode": ${text}`);
+      } else {
+        console.error("OK: get_embed_analytics(report=heatmap, podcast_id=...) returns isError naming episode_id");
       }
     }
   } catch (error) {

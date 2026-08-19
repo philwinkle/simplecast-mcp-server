@@ -15,9 +15,19 @@ export function registerPodcastTools(server: McpServer, client: SimplecastClient
       inputSchema: {
         limit: z.number().int().positive().optional().describe("Max number of results per page."),
         offset: z.number().int().nonnegative().optional().describe("Number of results to skip, for pagination."),
+        search: z.string().optional().describe("Search for podcasts by title."),
+        status: z
+          .enum(["draft", "published"])
+          .optional()
+          .describe("Filter podcasts by status. Available statuses are draft or published."),
+        type: z
+          .enum(["serial", "episodic", "episodic_seasons"])
+          .optional()
+          .describe("Filter podcasts by type. Available types are serial, episodic and episodic_seasons."),
       },
     },
-    async ({ limit, offset }) => runTool(() => client.request("/podcasts", { limit, offset }))
+    async ({ limit, offset, search, status, type }) =>
+      runTool(() => client.request("/podcasts", { limit, offset, search, status, type }))
   );
 
   server.registerTool(
